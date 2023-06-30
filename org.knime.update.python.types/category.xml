@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="org.knime.features.python3.types" version="0.0.0"/>
+   <category-def name="knime-python-types" label="Build artifacts from knime-python-types">
+       <description>Build artifacts from knime-python-types</description>
+       <query><expression type="match">id ~= /.+/</expression></query>
+   </category-def>
+</site>
