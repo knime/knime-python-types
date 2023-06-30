@@ -15,11 +15,6 @@ properties([
 try {
     // provide the name of the update site project
     knimetools.defaultTychoBuild('org.knime.update.python.types')
-
-    stage('Sonarqube analysis') {
-        env.lastStage = env.STAGE_NAME
-        workflowTests.runSonar([])
-    }
 } catch (ex) {
     currentBuild.result = 'FAILURE'
     throw ex
