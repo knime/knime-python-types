@@ -19,6 +19,7 @@
 		<feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
 		<feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
 		<knime.sonar-env>Sonarcloud</knime.sonar-env>
+		<changelog.baseref>4781598c7332b3c31392443e2a9e621bebc0339b</changelog.baseref>
 	</properties>
 
 	<modules>
@@ -33,6 +34,11 @@
 			<id>p2-knime-core</id>
 			<layout>p2</layout>
 			<url>${knime.core.p2}</url>
+		</repository>
+		<repository>
+			<id>p2-knime-shared</id>
+			<layout>p2</layout>
+			<url>${knime.shared.p2}</url>
 		</repository>
 		<repository>
 			<id>p2-knime-tp</id>
