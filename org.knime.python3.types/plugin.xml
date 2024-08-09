@@ -2,5 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="PythonValueFactory" name="PythonValueFactory" schema="schema/PythonValueFactory.exsd"/>
+   <extension-point id="PythonExtensionType" name="PythonExtensionType" schema="schema/PythonExtensionType.exsd"/>
 
 </plugin>
