@@ -67,6 +67,7 @@ public final class PythonValueFactory {
 
     private final String m_pythonValueFactoryName;
     private final String m_valueTypeName;
+    private final String m_valueFactoryDataType;
 
     private boolean m_isDefaultPythonRepresentation;
 
@@ -74,6 +75,7 @@ public final class PythonValueFactory {
         final boolean isDefaultPythonRepresentation) {
         m_valueFactory = valueFactory;
         m_pythonValueFactoryName = pythonClassName;
+        m_valueFactoryDataType = ValueFactoryUtils.getDataTypeForValueFactory(valueFactory).toString();
         m_valueTypeName = ValueTypeName;
         m_isDefaultPythonRepresentation = isDefaultPythonRepresentation;
         }
@@ -91,6 +93,14 @@ public final class PythonValueFactory {
      */
     public String getPythonValueFactoryName() {
         return m_pythonValueFactoryName;
+    }
+
+    /**
+     * @return the string representation of the value factory data type,
+     *          in a human readable string e.g. XML.
+     */
+    public String getValueFactoryDataType() {
+        return m_valueFactoryDataType;
     }
 
     /**
