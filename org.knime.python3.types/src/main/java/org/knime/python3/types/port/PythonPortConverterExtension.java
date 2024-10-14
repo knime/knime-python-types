@@ -44,24 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.python3.types.port;
+
+import java.util.Optional;
 
 import org.knime.core.node.port.PortObject;
 
 /**
- * General PortObject interface used to pass data between Python and KNIME
  *
- * @author Carsten Haubold
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface PythonPortObject extends PythonWrapperObject {
-    /**
-     * @return the class name of the Java {@link PortObject} that is being wrapped here. Used for registration
-     */
-    @Override
-    String getJavaClassName();
+public final class PythonPortConverterExtension {
 
-    PythonPortObjectSpec getSpec();
+    private final UntypedKnimeToPyPortObjectConverter m_knimeToPyConverter;
+
+    private final UntypedPyToKnimePortObjectConverter m_pyToKnimeConverter;
+
+    private final String m_contributor;
+
+    PythonPortConverterExtension(final UntypedKnimeToPyPortObjectConverter knimeToPyConverter,
+        final UntypedPyToKnimePortObjectConverter pyToKnimeConverter, final String contributor) {
+        assert knimeToPyConverter != null || pyToKnimeConverter != null : "At least one converter must be defined.";
+        m_knimeToPyConverter = knimeToPyConverter;
+        m_pyToKnimeConverter = pyToKnimeConverter;
+        m_contributor = contributor;
+    }
+
+    public String getContributor() {
+        return m_contributor;
+    }
+
+    public Optional<UntypedKnimeToPyPortObjectConverter> getKnimeToPyConverter() {
+        return Optional.ofNullable(m_knimeToPyConverter);
+    }
+
+    public Optional<UntypedPyToKnimePortObjectConverter> getPyToKnimeConverter() {
+        return Optional.ofNullable(m_pyToKnimeConverter);
+    }
+
+    public Class<? extends PortObject> getPortObjectClass() {
+        if (m_knimeToPyConverter != null) {
+            return m_knimeToPyConverter.getPortObjectClass();
+        }
+        return m_pyToKnimeConverter.getPortObjectClass();
+    }
 
 }

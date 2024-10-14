@@ -44,18 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port;
-
-import org.knime.core.node.port.PortObject;
+package org.knime.python3.types.port.transfer;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface KnimeToPythonPortObjectConverter<S extends PortObject, T extends PythonPortObject> {
+public final class StringPythonTransfer implements PythonPortObjectSpecTransfer, PythonPortObjectTransfer {
 
-    T convert(S source, PortObjectConversionContext context);
+    private final String m_representation;
+
+    public StringPythonTransfer(final String representation) {
+        m_representation = representation;
+    }
+
+    public String getStringRepresentation() {
+        return m_representation;
+    }
 
 }

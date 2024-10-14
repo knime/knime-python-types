@@ -44,24 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.python3.types.port;
 
-import java.util.Map;
-
-import org.knime.core.data.filestore.FileStore;
-import org.knime.core.node.ExecutionContext;
-import org.knime.python3.arrow.PythonArrowTableConverter;
+import java.nio.file.Path;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface PortObjectConversionContext {
+public record PythonImplementation(Path pythonModule, String pythonClassName) {
 
-    Map<String, FileStore> fileStoresByKey();
-    PythonArrowTableConverter tableConverter();
-    ExecutionContext execContext();
+    public Path parentFolder() {
+        return pythonModule.getParent();
+    }
 
+    public String moduleName() {
+        var fileNameWithExtension = pythonModule.getFileName().toString();
+        return fileNameWithExtension.substring(0, fileNameWithExtension.lastIndexOf("."));
+    }
 }

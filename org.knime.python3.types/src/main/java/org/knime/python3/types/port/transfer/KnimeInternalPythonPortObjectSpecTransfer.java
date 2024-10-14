@@ -44,27 +44,17 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port;
+package org.knime.python3.types.port.transfer;
 
 /**
- * Converts from a source object to a target object using the given context.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <S> type of source objects
- * @param <T> type of target objects
- * @param <C> type of context
+ * @noreference
+ * @noextend
+ * @noimplement
  */
-@FunctionalInterface
-public interface Converter<S, T, C> {
+public non-sealed interface KnimeInternalPythonPortObjectSpecTransfer extends PythonPortObjectSpecTransfer {
 
-    /**
-     * Converts from a source object to a target object using the given context.
-     *
-     * @param source the input object to convert to the target object
-     * @param context of the conversion
-     * @return the target object that corresponds to source
-     */
-    T convert(S source, C context);
 }

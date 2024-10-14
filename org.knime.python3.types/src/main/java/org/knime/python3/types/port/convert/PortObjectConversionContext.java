@@ -46,16 +46,22 @@
  * History
  *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port;
+package org.knime.python3.types.port.convert;
 
-import org.knime.core.node.port.PortObjectSpec;
+import java.util.Map;
+
+import org.knime.core.data.filestore.FileStore;
+import org.knime.core.node.ExecutionContext;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface KnimeToPythonPortObjectSpecConverter<S extends PortObjectSpec, T extends PythonPortObjectSpec> {
+public interface PortObjectConversionContext extends PortObjectSpecConversionContext {
 
-    T convert(S source, PortObjectSpecConversionContext context);
+    Map<String, FileStore> fileStoresByKey();
+    ExecutionContext execContext();
+
+    // TODO provide TableConverter which requires an abstraction in this plugin. Or figure out another way to handle the tables
 
 }

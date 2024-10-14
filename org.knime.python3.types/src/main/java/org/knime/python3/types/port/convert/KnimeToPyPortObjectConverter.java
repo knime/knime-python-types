@@ -46,22 +46,27 @@
  * History
  *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port;
+package org.knime.python3.types.port.convert;
 
 import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.python3.types.port.transfer.PythonPortObjectSpecTransfer;
+import org.knime.python3.types.port.transfer.PythonPortObjectTransfer;
 
 /**
- * General PortObject interface used to pass data between Python and KNIME
+ * Converts a {@link PortObject} into a {@link PythonPortObjectTransfer}.
  *
- * @author Carsten Haubold
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <O> The type of {@link PortObject}
  */
-public interface PythonPortObject extends PythonWrapperObject {
-    /**
-     * @return the class name of the Java {@link PortObject} that is being wrapped here. Used for registration
-     */
-    @Override
-    String getJavaClassName();
+public interface KnimeToPyPortObjectConverter<O extends PortObject, S extends PortObjectSpec> {
 
-    PythonPortObjectSpec getSpec();
+    PythonPortObjectTransfer convertPortObjectToPython(O portObject, PortObjectConversionContext context);
+
+    PythonPortObjectSpecTransfer convertSpecToPython(final S spec, final PortObjectSpecConversionContext context);
+
+    Class<O> getPortObjectClass();
+
+    Class<S> getPortObjectSpecClass();
 
 }

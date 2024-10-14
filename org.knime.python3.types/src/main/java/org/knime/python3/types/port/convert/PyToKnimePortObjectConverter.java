@@ -44,24 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Sep 5, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port;
+package org.knime.python3.types.port.convert;
 
 import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.python3.types.port.transfer.PythonPortObjectSpecTransfer;
+import org.knime.python3.types.port.transfer.PythonPortObjectTransfer;
 
 /**
- * General PortObject interface used to pass data between Python and KNIME
+ * Converts a {@link PythonPortObjectTransfer} into a {@link PortObject}.
  *
- * @author Carsten Haubold
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <T> the type of transfer used for the object
+ * @param <S> the type of spec used by this converter
+ * @param <V> the type of transfer used for the spec
  */
-public interface PythonPortObject extends PythonWrapperObject {
-    /**
-     * @return the class name of the Java {@link PortObject} that is being wrapped here. Used for registration
-     */
-    @Override
-    String getJavaClassName();
+public interface PyToKnimePortObjectConverter<T extends PythonPortObjectTransfer, S extends PortObjectSpec, V extends PythonPortObjectSpecTransfer> {
 
-    PythonPortObjectSpec getSpec();
+    PortObject convertPortObjectFromPython(T source, S spec, PortObjectConversionContext context);
+
+    PortObjectSpec convertSpecFromPython(final V source, final PortObjectSpecConversionContext context);
+
+    // TODO fully type everything? We could also ask for the types of the transfers and let the untyped converters check types at runtime
+    Class<? extends PortObject> getPortObjectClass();
+
+    Class<S> getPortObjectSpecClass();
 
 }

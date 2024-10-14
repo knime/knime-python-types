@@ -46,22 +46,12 @@
  * History
  *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port;
-
-import org.knime.core.node.port.PortObject;
+package org.knime.python3.types.port.convert;
 
 /**
- * General PortObject interface used to pass data between Python and KNIME
  *
- * @author Carsten Haubold
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface PythonPortObject extends PythonWrapperObject {
-    /**
-     * @return the class name of the Java {@link PortObject} that is being wrapped here. Used for registration
-     */
-    @Override
-    String getJavaClassName();
-
-    PythonPortObjectSpec getSpec();
+public interface PortObjectSpecConversionContext {
 
 }

@@ -49,37 +49,53 @@
 
    <element name="PythonPortType">
       <complexType>
-         <attribute name="JavaPortObjectClass" type="string" use="required">
+         <sequence minOccurs="0" maxOccurs="1">
+            <element ref="KnimeToPythonPortObjectConverter" minOccurs="0" maxOccurs="1"/>
+            <element ref="PythonToKnimePortObjectConverter" minOccurs="0" maxOccurs="1"/>
+         </sequence>
+      </complexType>
+   </element>
+
+   <element name="KnimeToPythonPortObjectConverter">
+      <annotation>
+         <documentation>
+            Converter that allows to convert a KNIME PortObject written in Java into a corresponding PortObject on the Python side. Consists of the Java implementation and the corresponding Python implementation.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="JavaConverterClass" type="string" use="required">
             <annotation>
                <documentation>
-                  The PortObject of the KNIME PortType for which this extension adds Python compatibility.
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.core.node.port.PortObject"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="KnimeToPythonPortObjectConverter" type="string">
-            <annotation>
-               <documentation>
-                  
+                  The Java implementation of the converter.
                </documentation>
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.knime.python3.types.port.KnimeToPythonPortObjectConverter"/>
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="KnimeToPythonPortObjectSpecConverter" type="string">
+         <attribute name="PythonModule" type="string" use="required">
             <annotation>
                <documentation>
-                  
+                  Python module containing the Python implementation of the converter.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.python3.types.port.KnimeToPythonPortObjectSpecConverter"/>
+                  <meta.attribute kind="resource"/>
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="PythonToKnimePortObjectConverter" type="string">
+         <attribute name="PythonConverterClass" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The name of the Python class holding the implementation of the converter.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="PythonToKnimePortObjectConverter">
+      <complexType>
+         <attribute name="JavaConverterClass" type="string">
             <annotation>
                <documentation>
                   
@@ -89,14 +105,21 @@
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="PythonToKnimePortObjectSpecConverter" type="string">
+         <attribute name="PythonModule" type="string" use="required">
             <annotation>
                <documentation>
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.knime.python3.types.port.PythonToKnimePortObjectSpecConverter"/>
+                  <meta.attribute kind="resource"/>
                </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="PythonConverterClass" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
             </annotation>
          </attribute>
       </complexType>

@@ -48,79 +48,164 @@
  */
 package org.knime.python3.types.port;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
-import org.knime.core.node.port.PortTypeRegistry;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.util.FileUtil;
+import org.knime.python3.types.port.convert.KnimeToPyPortObjectConverter;
+import org.knime.python3.types.port.convert.PyToKnimePortObjectConverter;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class PythonExtensionTypeExtensionPointParser {
+public final class PythonExtensionTypeExtensionPointParser {
+
+    private static final String PY_TO_KNIME_CONVERTER_KEY = "PythonToKnimePortObjectConverter";
+
+    private static final String KNIME_TO_PY_CONVERTER_KEY = "KnimeToPythonPortObjectConverter";
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PythonExtensionTypeExtensionPointParser.class);
 
     private static final String EXTENSION_POINT = "org.knime.python3.types.PythonExtensionType";
 
-    static Stream<PythonPortType> parseExtensionPoint() {
+    private static List<PythonPortConverterExtension> PYTHON_PORT_CONVERTERS;
+
+    public static synchronized List<PythonPortConverterExtension> getPythonPortConverters() {
+        if (PYTHON_PORT_CONVERTERS == null) {
+            PYTHON_PORT_CONVERTERS = parseExtensionPoint().toList();
+        }
+        return PYTHON_PORT_CONVERTERS;
+    }
+
+    static Stream<PythonPortConverterExtension> parseExtensionPoint() {
         var registry = Platform.getExtensionRegistry();
         var extPoint = registry.getExtensionPoint(EXTENSION_POINT);
-        return Stream.of(extPoint.getExtension(EXTENSION_POINT))//
+        IExtension[] extensions = extPoint.getExtensions();
+        return Stream.of(extensions)//
             .flatMap(PythonExtensionTypeExtensionPointParser::extractPythonPortTypes);
     }
 
-
-    private static Stream<PythonPortType> extractPythonPortTypes(final IExtension extension) {
-        return Stream.of(extension.getConfigurationElements())//
-            .map(PythonExtensionTypeExtensionPointParser::extractPythonPortType)//
+    private static Stream<PythonPortConverterExtension> extractPythonPortTypes(final IExtension extension) {
+        IConfigurationElement[] configurationElements = extension.getConfigurationElements();
+        return Stream.of(configurationElements)//
+            .map(PythonExtensionTypeExtensionPointParser::parsePortConverterTuple)//
             .filter(Objects::nonNull);
     }
 
-    private static PythonPortType extractPythonPortType(final IConfigurationElement element) {
-        var javaPortObjectClassName = element.getAttribute("JavaPortObjectClass");
-        var portTypeRegistry = PortTypeRegistry.getInstance();
-        var portType = portTypeRegistry.getObjectClass(javaPortObjectClassName).map(portTypeRegistry::getPortType);
-        if (portType.isEmpty()) {
-            // TODO log error
+    private static PythonPortConverterExtension parsePortConverterTuple(final IConfigurationElement configElement) {
+        // NOSONAR the lambda is shorter than the function ref
+        var knimeToPy =
+            parseConverter(configElement.getChildren(KNIME_TO_PY_CONVERTER_KEY), e -> parseKnimeToPyConverter(e));
+
+        // NOSONAR the lambda is shorter than the function ref
+        var pyToKnime =
+            parseConverter(configElement.getChildren(PY_TO_KNIME_CONVERTER_KEY), e -> parsePyToKnimeConverter(e));
+
+        if (knimeToPy.isEmpty() && pyToKnime.isEmpty()) {
+            // TODO add extension info
+            LOGGER.coding(() -> "The extension %s provides neither a %s, nor a %s.".formatted(
+                configElement.getContributor().getName(), KNIME_TO_PY_CONVERTER_KEY, PY_TO_KNIME_CONVERTER_KEY));
             return null;
         }
-        try {
-            var knimeToPyObjConverterClass = element.getAttribute("KnimeToPythonPortObjectConverter");
-            var knimeToPySpecConverterClass = element.getAttribute("KnimeToPythonPortObjectSpecConverter");
-            if (onlyOneMissing(knimeToPyObjConverterClass, knimeToPySpecConverterClass)) {
-                // TODO log error
-                return null;
-            }
-            var knimeToPyObjConverter = (KnimeToPythonPortObjectConverter<?, ?>)element
-                .createExecutableExtension("KnimeToPythonPortObjectConverter");
-            var knimeToPySpecConverter = (KnimeToPythonPortObjectSpecConverter<?, ?>)element
-                .createExecutableExtension("KnimeToPythonPortObjectSpecConverter");
 
-            var pyToKnimeObjConverterClass = element.getAttribute("PythonToKnimePortObjectConverter");
-            var pyToKnimeSpecConverterClass = element.getAttribute("PythonToKnimePortObjectConverter");
-            if (onlyOneMissing(pyToKnimeObjConverterClass, pyToKnimeSpecConverterClass)) {
-                // TODO log error
-                return null;
-            }
-            var pyToKnimeObjConverter = (PythonToKnimePortObjectConverter<?, ?>)element
-                .createExecutableExtension("PythonToKnimePortObjectConverter");
-            var pyToKnimeSpecConverter = (PythonToKnimePortObjectSpecConverter<?, ?>)element
-                .createExecutableExtension("PythonToKnimePortObjectConverter");
-
-            return new PythonPortTypeImpl(portType.get(), knimeToPyObjConverter, knimeToPySpecConverter,
-                pyToKnimeObjConverter, pyToKnimeSpecConverter);
-
-        } catch (CoreException ex) {
-            // TODO log error
+        if (!typesMatch(knimeToPy, pyToKnime, UntypedPythonPortObjectConverter::getPortObjectClass)) {
+            LOGGER.coding(() -> "The converters provided by the extension %s do not have matching PortObject classes."
+                .formatted(configElement.getContributor().getName()));
             return null;
+        }
+
+        if (!typesMatch(knimeToPy, pyToKnime, UntypedPythonPortObjectConverter::getPortObjectSpecClass)) {
+            LOGGER.coding(() -> "The converters provided by the extension %s do not have matching PortObjectSpec classes."
+            .formatted(configElement.getContributor().getName()));
+            return null;
+        }
+
+        // TODO null is ugly but Optional fields are ugly too :/
+        return new PythonPortConverterExtension(knimeToPy.orElse(null), pyToKnime.orElse(null), configElement.getContributor().getName());
+
+    }
+
+    private static boolean typesMatch(final Optional<UntypedKnimeToPyPortObjectConverter> knimeToPy,
+        final Optional<UntypedPyToKnimePortObjectConverter> pyToKnime,
+        final Function<UntypedPythonPortObjectConverter, Class<?>> typeExtractor) {
+        var knimeToPyType = knimeToPy.map(typeExtractor);
+        var pyToKnimeType = pyToKnime.map(typeExtractor);
+
+        return knimeToPyType.equals(pyToKnimeType) // both present and types match or both are empty
+                || (knimeToPyType.isPresent() ^ pyToKnimeType.isPresent()); // only one of the values is present
+    }
+
+    private static <T> Optional<T> parseConverter(final IConfigurationElement[] children,
+        final Function<IConfigurationElement, T> parser) {
+        if (children.length == 0) {
+            return Optional.empty();
+        }
+        // TODO complain if there is more than one?
+        return Optional.of(parser.apply(children[0]));
+    }
+
+    private static UntypedKnimeToPyPortObjectConverter
+        parseKnimeToPyConverter(final IConfigurationElement configElement) {
+        try {
+            var javaConverter =
+                (KnimeToPyPortObjectConverter<?, ?>)configElement.createExecutableExtension("JavaConverterClass");
+            return new UntypedKnimeToPyPortObjectConverter(javaConverter, getPythonImplementation(configElement));
+        } catch (CoreException ex) {
+            // TODO clean up error handling
+            throw new IllegalStateException(ex);
         }
     }
 
-    private static boolean onlyOneMissing(final Object first, final Object second) {
-        return (first == null && second != null) || (first != null && second == null);
+    private static PythonImplementation getPythonImplementation(final IConfigurationElement configElement) {
+        var modulePath = extractModulePath(configElement, configElement.getAttribute("PythonModule"));
+        return new PythonImplementation(modulePath, configElement.getAttribute("PythonConverterClass"));
+    }
+
+    private static UntypedPyToKnimePortObjectConverter
+        parsePyToKnimeConverter(final IConfigurationElement configElement) {
+        try {
+            var javaConverter =
+                (PyToKnimePortObjectConverter<?, ?, ?>)configElement.createExecutableExtension("JavaConverterClass");
+            return new UntypedPyToKnimePortObjectConverter(javaConverter, getPythonImplementation(configElement));
+        } catch (CoreException ex) {
+            // TODO clean up error handling
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    // TODO consolidate with PythonValueFactoryRegistry
+    private static Path extractModulePath(final IConfigurationElement element, final String resourcePath) {
+        final String contributor = element.getContributor().getName();
+        final var bundle = Platform.getBundle(contributor);
+        try {
+            final URL moduleUrl = FileLocator.find(bundle, new org.eclipse.core.runtime.Path(resourcePath), null);//NOSONAR
+
+            if (moduleUrl == null) {
+                LOGGER.coding("Could not find module path '" + resourcePath + "' in bundle '" + contributor + "'."
+                    + " Please make sure that the extension is configured correctly and that the Python files are included "
+                    + "in your build.properties");
+                return null;
+            }
+            final URL moduleFileUrl = FileLocator.toFileURL(moduleUrl);//NOSONAR
+            return FileUtil.resolveToPath(moduleFileUrl);
+        } catch (IOException | URISyntaxException ex) {
+            LOGGER.error(String.format("Can't resolve KnimeArrowExtensionType provided by %s.", contributor), ex);
+            return null;
+        }
     }
 
 }

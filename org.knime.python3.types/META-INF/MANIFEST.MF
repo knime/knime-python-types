@@ -10,7 +10,10 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: com.fasterxml.jackson.core.jackson-databind;bundle-version="[2.12.1,3.0.0)",
  org.knime.core;bundle-version="[5.4.0,6.0.0)",
  org.knime.core.table;bundle-version="[5.4.0,6.0.0)",
- org.knime.python3.arrow
+ org.knime.credentials.base,
+ org.knime.credentials.base.oauth
 Export-Package: org.knime.python3.types,
- org.knime.python3.types.port
+ org.knime.python3.types.port,
+ org.knime.python3.types.port.convert,
+ org.knime.python3.types.port.transfer
 Automatic-Module-Name: org.knime.python3.types

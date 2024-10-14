@@ -44,17 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port;
+package org.knime.python3.types.port.transfer;
 
-import org.knime.core.node.port.PortObject;
+import java.nio.file.Path;
 
 /**
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface PythonToKnimePortObjectConverter<S extends PythonPortObject, T extends PortObject> {
+public final class FilePythonTransfer implements PythonPortObjectTransfer {
 
-    T convert(S source, PortObjectConversionContext context);
+    private final Path m_path;
+
+    public FilePythonTransfer(final Path path) {
+        m_path = path;
+    }
+
+    public String getFilePath() {
+        return m_path.toAbsolutePath().toString();
+    }
+
+
 }
