@@ -59,7 +59,7 @@ import org.knime.core.node.port.PortObjectSpec;
  * @noreference this class is non-public API and only meant to be used by the Python node framework
  * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public interface UntypedPythonPortObjectConverter {
+public interface UntypedPortObjectConverter {
 
     /**
      * @return the class of {@link PortObject} the converter deals with

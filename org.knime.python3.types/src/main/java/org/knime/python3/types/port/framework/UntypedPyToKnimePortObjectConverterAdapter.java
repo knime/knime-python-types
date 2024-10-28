@@ -64,7 +64,7 @@ import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentat
  * @noreference this class is non-public API and only meant to be used by the Python node framework
  * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public final class UntypedPyToKnimePortObjectConverter implements UntypedPythonPortObjectConverter {
+public final class UntypedPyToKnimePortObjectConverterAdapter implements UntypedPortObjectConverter {
 
     private final GenericsAbsorbingConverter<?, ?, ?, ?> m_absorbingConverter;
 
@@ -78,7 +78,7 @@ public final class UntypedPyToKnimePortObjectConverter implements UntypedPythonP
      * @param <V> the type of transfer used for the specs
      * @param typedConverter the converter wrapped by the new untyped converter
      */
-    public <O extends PortObject, T extends PortObjectIntermediateRepresentation, S extends PortObjectSpec, V extends PortObjectSpecIntermediateRepresentation> UntypedPyToKnimePortObjectConverter(
+    public <O extends PortObject, T extends PortObjectIntermediateRepresentation, S extends PortObjectSpec, V extends PortObjectSpecIntermediateRepresentation> UntypedPyToKnimePortObjectConverterAdapter(
         final PyToKnimePortObjectConverter<O, T, S, V> typedConverter) {
         m_absorbingConverter = new GenericsAbsorbingConverter<>(typedConverter);
         m_poClass = typedConverter.getPortObjectClass();

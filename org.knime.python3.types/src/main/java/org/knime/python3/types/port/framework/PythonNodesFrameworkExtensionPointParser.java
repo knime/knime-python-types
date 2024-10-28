@@ -83,18 +83,18 @@ public final class PythonNodesFrameworkExtensionPointParser {
 
     private static final String EXTENSION_POINT = "org.knime.python3.types.PythonNodesFrameworkExtension";
 
-    private static List<PythonPortConverterExtension<UntypedKnimeToPyPortObjectConverter>> KNIME_TO_PY_PORT_CONVERTERS;
+    private static List<PythonPortConverterExtension<UntypedKnimeToPyPortObjectConverterAdapter>> KNIME_TO_PY_PORT_CONVERTERS;
 
-    private static List<PythonPortConverterExtension<UntypedPyToKnimePortObjectConverter>> PY_TO_KNIME_PORT_CONVERTERS;
+    private static List<PythonPortConverterExtension<UntypedPyToKnimePortObjectConverterAdapter>> PY_TO_KNIME_PORT_CONVERTERS;
 
     /**
      * @return the unmodifiable list of registered extensions for converting from KNIME to Python
      */
-    public static synchronized List<PythonPortConverterExtension<UntypedKnimeToPyPortObjectConverter>>
+    public static synchronized List<PythonPortConverterExtension<UntypedKnimeToPyPortObjectConverterAdapter>>
         getKnimeToPyConverters() {
         if (KNIME_TO_PY_PORT_CONVERTERS == null) {
             KNIME_TO_PY_PORT_CONVERTERS = parseConverters(KNIME_TO_PY_CONVERTER_KEY, KnimeToPyPortObjectConverter.class,
-                UntypedKnimeToPyPortObjectConverter::new);
+                UntypedKnimeToPyPortObjectConverterAdapter::new);
         }
         return KNIME_TO_PY_PORT_CONVERTERS;
     }
@@ -102,30 +102,30 @@ public final class PythonNodesFrameworkExtensionPointParser {
     /**
      * @return the unmodifiable list of registered extensions for converting from Python to KNIME
      */
-    public static synchronized List<PythonPortConverterExtension<UntypedPyToKnimePortObjectConverter>>
+    public static synchronized List<PythonPortConverterExtension<UntypedPyToKnimePortObjectConverterAdapter>>
         getPyToKnimeConverters() {
         if (PY_TO_KNIME_PORT_CONVERTERS == null) {
             PY_TO_KNIME_PORT_CONVERTERS = parseConverters(PY_TO_KNIME_CONVERTER_KEY, PyToKnimePortObjectConverter.class,
-                UntypedPyToKnimePortObjectConverter::new);
+                UntypedPyToKnimePortObjectConverterAdapter::new);
         }
         return PY_TO_KNIME_PORT_CONVERTERS;
     }
 
-    private static <T, U extends UntypedPythonPortObjectConverter> List<PythonPortConverterExtension<U>>
+    private static <T, U extends UntypedPortObjectConverter> List<PythonPortConverterExtension<U>>
         parseConverters(final String converterTag, final Class<T> typedConverterClass,
             final Function<T, U> typeStripper) {
         return parseExtensionPoint(converterTag,
             e -> instantiateJavaConverter(e, typedConverterClass).map(typeStripper)).toList();
     }
 
-    static <T extends UntypedPythonPortObjectConverter> Stream<PythonPortConverterExtension<T>> parseExtensionPoint(
+    static <T extends UntypedPortObjectConverter> Stream<PythonPortConverterExtension<T>> parseExtensionPoint(
         final String converterTag, final Function<IConfigurationElement, Optional<T>> converterParser) {
         return extensionStream()//
             .flatMap(e -> Stream.of(e.getConfigurationElements())).filter(c -> converterTag.equals(c.getName()))
             .map(toExtensionParser(converterParser)).flatMap(Optional::stream);
     }
 
-    private static <T extends UntypedPythonPortObjectConverter>
+    private static <T extends UntypedPortObjectConverter>
         Function<IConfigurationElement, Optional<PythonPortConverterExtension<T>>>
         toExtensionParser(final Function<IConfigurationElement, Optional<T>> converterParser) {
         return e -> converterParser.apply(e)//
