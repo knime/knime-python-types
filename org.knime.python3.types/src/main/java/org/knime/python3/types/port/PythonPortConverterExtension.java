@@ -44,40 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.convert;
+package org.knime.python3.types.port;
 
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.python3.types.port.api.ir.PortObjectIntermediateRepresentation;
-import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentation;
+import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
 
 /**
- * Converts a {@link PortObject} into a {@link PortObjectIntermediateRepresentation}.
+ * Encapsulates an {@link UntypedPortObjectConverter} and the extension that contributes it.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <O> The type of {@link PortObject}
- * @param <S> the type of {@link PortObjectSpec}
+ * @param <U> the type of {@link UntypedPortObjectConverter} provided by this extension
+ * @param converter the {@link UntypedPortObjectConverter}
+ * @param pythonImplementation of the converter
+ * @param contributor the id of the extension that contributes the converter
+ * @noreference this class is non-public API and only meant to be used by the Python node framework
+ * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public interface KnimeToPyPortObjectConverter<O extends PortObject, S extends PortObjectSpec>
-    extends PythonPortObjectConverter<O, S> {
-
-    /**
-     * Converts the given {@link PortObject} into a {@link PortObjectIntermediateRepresentation} that can be parsed on the Python side.
-     * @param portObject to convert
-     * @param context in which the conversion happens
-     * @return the transfer object
-     */
-    PortObjectIntermediateRepresentation convertPortObjectToPython(O portObject, PortObjectConversionContext context);
-
-    /**
-     * Converts the given {@link PortObjectSpec} into a {@link PortObjectSpecIntermediateRepresentation} that can be parsed on the Python side.
-     *
-     * @param spec to convert
-     * @param context in which the conversion happens
-     * @return the transfer object
-     */
-    PortObjectSpecIntermediateRepresentation convertSpecToPython(final S spec, final PortObjectSpecConversionContext context);
+public record PythonPortConverterExtension<U extends UntypedPortObjectConverter>(U converter,
+    PythonImplementation pythonImplementation, String contributor) {
 
 }

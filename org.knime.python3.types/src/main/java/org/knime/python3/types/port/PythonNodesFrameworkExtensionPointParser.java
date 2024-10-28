@@ -46,7 +46,7 @@
  * History
  *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port.framework;
+package org.knime.python3.types.port;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -63,8 +63,11 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
-import org.knime.python3.types.port.api.convert.KnimeToPyPortObjectConverter;
-import org.knime.python3.types.port.api.convert.PyToKnimePortObjectConverter;
+import org.knime.python3.types.port.converter.PortObjectEncoder;
+import org.knime.python3.types.port.converter.PortObjectDecoder;
+import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectEncoder;
+import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
+import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectDecoder;
 
 /**
  * Parses the {@code org.knime.python3.types.PythonNodesFrameworkExtensionExtension} extension point.
@@ -83,18 +86,18 @@ public final class PythonNodesFrameworkExtensionPointParser {
 
     private static final String EXTENSION_POINT = "org.knime.python3.types.PythonNodesFrameworkExtension";
 
-    private static List<PythonPortConverterExtension<UntypedKnimeToPyPortObjectConverterAdapter>> KNIME_TO_PY_PORT_CONVERTERS;
+    private static List<PythonPortConverterExtension<UntypedDelegatingPortObjectEncoder>> KNIME_TO_PY_PORT_CONVERTERS;
 
-    private static List<PythonPortConverterExtension<UntypedPyToKnimePortObjectConverterAdapter>> PY_TO_KNIME_PORT_CONVERTERS;
+    private static List<PythonPortConverterExtension<UntypedDelegatingPortObjectDecoder>> PY_TO_KNIME_PORT_CONVERTERS;
 
     /**
      * @return the unmodifiable list of registered extensions for converting from KNIME to Python
      */
-    public static synchronized List<PythonPortConverterExtension<UntypedKnimeToPyPortObjectConverterAdapter>>
+    public static synchronized List<PythonPortConverterExtension<UntypedDelegatingPortObjectEncoder>>
         getKnimeToPyConverters() {
         if (KNIME_TO_PY_PORT_CONVERTERS == null) {
-            KNIME_TO_PY_PORT_CONVERTERS = parseConverters(KNIME_TO_PY_CONVERTER_KEY, KnimeToPyPortObjectConverter.class,
-                UntypedKnimeToPyPortObjectConverterAdapter::new);
+            KNIME_TO_PY_PORT_CONVERTERS = parseConverters(KNIME_TO_PY_CONVERTER_KEY, PortObjectEncoder.class,
+                UntypedDelegatingPortObjectEncoder::new);
         }
         return KNIME_TO_PY_PORT_CONVERTERS;
     }
@@ -102,11 +105,11 @@ public final class PythonNodesFrameworkExtensionPointParser {
     /**
      * @return the unmodifiable list of registered extensions for converting from Python to KNIME
      */
-    public static synchronized List<PythonPortConverterExtension<UntypedPyToKnimePortObjectConverterAdapter>>
+    public static synchronized List<PythonPortConverterExtension<UntypedDelegatingPortObjectDecoder>>
         getPyToKnimeConverters() {
         if (PY_TO_KNIME_PORT_CONVERTERS == null) {
-            PY_TO_KNIME_PORT_CONVERTERS = parseConverters(PY_TO_KNIME_CONVERTER_KEY, PyToKnimePortObjectConverter.class,
-                UntypedPyToKnimePortObjectConverterAdapter::new);
+            PY_TO_KNIME_PORT_CONVERTERS = parseConverters(PY_TO_KNIME_CONVERTER_KEY, PortObjectDecoder.class,
+                UntypedDelegatingPortObjectDecoder::new);
         }
         return PY_TO_KNIME_PORT_CONVERTERS;
     }

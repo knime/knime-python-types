@@ -44,15 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.ir;
+package org.knime.python3.types.port.converter;
+
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * Common interface of intermediate representations supported for port objects.
+ * Common interface for Untyped converters. Provides runtime information on the {@link PortObject} and
+ * {@link PortObjectSpec} types the converter works with.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @noreference this class is non-public API and only meant to be used by the Python node framework
+ * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public sealed interface PortObjectIntermediateRepresentation extends IntermediateRepresentation permits EmptyIntermediateRepresentation, StringIntermediateRepresentation {
+public interface UntypedPortObjectConverter {
+
+    /**
+     * @return the class of {@link PortObject} the converter deals with
+     */
+    Class<? extends PortObject> getPortObjectClass();
+
+    /**
+     * @return the class of {@link PortObjectSpec} the converter deals with
+     */
+    Class<? extends PortObjectSpec> getPortObjectSpecClass();
 
 }

@@ -11,7 +11,7 @@ Require-Bundle: com.fasterxml.jackson.core.jackson-databind;bundle-version="[2.1
  org.knime.core;bundle-version="[5.4.0,6.0.0)",
  org.knime.core.table;bundle-version="[5.4.0,6.0.0)"
 Export-Package: org.knime.python3.types,
- org.knime.python3.types.port.api.convert;x-internal:=true,
- org.knime.python3.types.port.api.ir;x-internal:=true,
- org.knime.python3.types.port.framework;x-internal:=true
+ org.knime.python3.types.port;x-internal:=true,
+ org.knime.python3.types.port.converter;x-internal:=true,
+ org.knime.python3.types.port.ir;x-internal:=true
 Automatic-Module-Name: org.knime.python3.types

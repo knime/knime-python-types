@@ -44,35 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 5, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.framework;
+package org.knime.python3.types.port.converter;
 
-import java.nio.file.Path;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.python3.types.port.ir.PortObjectIntermediateRepresentation;
+import org.knime.python3.types.port.ir.PortObjectSpecIntermediateRepresentation;
 
 /**
- * Represents the Python implementation of a converter.
+ * Decodes a {@link PortObjectIntermediateRepresentation} into a {@link PortObject}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param pythonModulePath path to the Python module containing the implementation
- * @param pythonClassName the implementing class in the Python module
- * @noreference this class is non-public API and only meant to be used by the Python node framework
- * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
+ * @param <O> the type of PortObject used by this converter
+ * @param <T> the type of transfer used for the object
+ * @param <S> the type of spec used by this converter
+ * @param <V> the type of transfer used for the spec
  */
-public record PythonImplementation(Path pythonModulePath, String pythonClassName) {
+public interface PortObjectDecoder<O extends PortObject, T extends PortObjectIntermediateRepresentation, S extends PortObjectSpec, V extends PortObjectSpecIntermediateRepresentation>
+    extends PortObjectConverter<O, S> {
 
     /**
-     * @return folder containing the Python module
+     * Creates a {@link PortObject} from the data in a transfer object that is created on the Python side.
+     *
+     * @param intermediateRepresentation filled with data on the Python side
+     * @param spec created by
+     *            {@link #decodePortObjectSpec(PortObjectSpecIntermediateRepresentation, PortObjectSpecConversionContext)}
+     * @param context in which the conversion happens
+     * @return the {@link PortObject}
      */
-    public Path parentFolder() {
-        return pythonModulePath.getParent();
-    }
+    O decodePortObject(T intermediateRepresentation, S spec, PortObjectConversionContext context);
 
     /**
-     * @return name of the Python module (without file extension)
+     * Creates a {@link PortObjectSpec} from the data in a transfer object that is created on the Python side.
+     *
+     * @param intermediateRepresentation filled with data on the Python side
+     * @param context in which the conversion happens
+     * @return the {@link PortObjectSpec}
      */
-    public String moduleName() {
-        var fileNameWithExtension = pythonModulePath.getFileName().toString();
-        return fileNameWithExtension.substring(0, fileNameWithExtension.lastIndexOf("."));
-    }
+    S decodePortObjectSpec(final V intermediateRepresentation, final PortObjectSpecConversionContext context);
+
 }

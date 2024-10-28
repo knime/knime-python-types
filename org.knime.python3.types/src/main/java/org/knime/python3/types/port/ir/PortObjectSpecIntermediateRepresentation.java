@@ -46,7 +46,7 @@
  * History
  *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.ir;
+package org.knime.python3.types.port.ir;
 
 /**
  * Common super interface of intermediate representations supported for specs.

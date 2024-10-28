@@ -44,15 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 9, 2024 (adrian.nembach): created
+ *   Oct 16, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.convert;
+package org.knime.python3.types.port.converter;
+
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
 
 /**
- * Context for conversions. Empty for now but might be extended in future versions.
+ * Common interface of converters for converting Java {@link PortObject PortObjects} and {@link PortObjectSpec specs} to
+ * and from Python. Implementing classes should implement {@link PortObjectEncoder} or {@link PortObjectDecoder} or both.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <O> the type of {@link PortObject} this converter operates on
+ * @param <S> the type of {@link PortObjectSpec} this converter operates on
  */
-public interface PortObjectConversionContext extends PortObjectSpecConversionContext {
+public interface PortObjectConverter<O extends PortObject, S extends PortObjectSpec> {
 
+    /**
+     * @return the class of {@link PortObject} this converter operates on
+     */
+    Class<O> getPortObjectClass();
+
+    /**
+     * @return the class of {@link PortObjectSpec} this converter operates on
+     */
+    Class<S> getPortObjectSpecClass();
 }

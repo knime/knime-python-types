@@ -46,13 +46,38 @@
  * History
  *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port.api.convert;
+package org.knime.python3.types.port.converter;
+
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.python3.types.port.ir.PortObjectIntermediateRepresentation;
+import org.knime.python3.types.port.ir.PortObjectSpecIntermediateRepresentation;
 
 /**
- * Context in which a spec conversion takes place. Empty for now but might be extended in future versions.
+ * Encodes a {@link PortObject} into a {@link PortObjectIntermediateRepresentation}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <O> The type of {@link PortObject}
+ * @param <S> the type of {@link PortObjectSpec}
  */
-public interface PortObjectSpecConversionContext {
+public interface PortObjectEncoder<O extends PortObject, S extends PortObjectSpec>
+    extends PortObjectConverter<O, S> {
+
+    /**
+     * Converts the given {@link PortObject} into a {@link PortObjectIntermediateRepresentation} that can be parsed on the Python side.
+     * @param portObject to convert
+     * @param context in which the conversion happens
+     * @return the intermediate representation
+     */
+    PortObjectIntermediateRepresentation encodePortObject(O portObject, PortObjectConversionContext context);
+
+    /**
+     * Converts the given {@link PortObjectSpec} into a {@link PortObjectSpecIntermediateRepresentation} that can be parsed on the Python side.
+     *
+     * @param spec to convert
+     * @param context in which the conversion happens
+     * @return the intermediate representation
+     */
+    PortObjectSpecIntermediateRepresentation encodePortObjectSpec(final S spec, final PortObjectSpecConversionContext context);
 
 }

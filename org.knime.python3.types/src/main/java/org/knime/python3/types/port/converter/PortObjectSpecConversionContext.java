@@ -44,33 +44,15 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port.api.ir;
+package org.knime.python3.types.port.converter;
 
 /**
- * String-based intermediate representation of port object data. Often the String is a JSON but we refrain from a
- * specific JSON transfer to avoid the dependency on a specific JSON framework.
+ * Context in which a spec conversion takes place. Empty for now but might be extended in future versions.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class StringIntermediateRepresentation
-    implements PortObjectSpecIntermediateRepresentation, PortObjectIntermediateRepresentation {
-
-    private final String m_representation;
-
-    /**
-     * @param representation of the data
-     */
-    public StringIntermediateRepresentation(final String representation) {
-        m_representation = representation;
-    }
-
-    /**
-     * @return the string representing the spec or object
-     */
-    public String getStringRepresentation() {
-        return m_representation;
-    }
+public interface PortObjectSpecConversionContext {
 
 }

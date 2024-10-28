@@ -44,31 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.framework;
-
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
+package org.knime.python3.types.port.ir;
 
 /**
- * Common interface for Untyped converters. Provides runtime information on the {@link PortObject} and
- * {@link PortObjectSpec} types the converter works with.
+ * String-based intermediate representation of port object data. Often the String is a JSON but we refrain from a
+ * specific JSON transfer to avoid the dependency on a specific JSON framework.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noreference this class is non-public API and only meant to be used by the Python node framework
- * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public interface UntypedPortObjectConverter {
+public final class StringIntermediateRepresentation
+    implements PortObjectSpecIntermediateRepresentation, PortObjectIntermediateRepresentation {
+
+    private final String m_representation;
 
     /**
-     * @return the class of {@link PortObject} the converter deals with
+     * @param representation of the data
      */
-    Class<? extends PortObject> getPortObjectClass();
+    public StringIntermediateRepresentation(final String representation) {
+        m_representation = representation;
+    }
 
     /**
-     * @return the class of {@link PortObjectSpec} the converter deals with
+     * @return the string representing the spec or object
      */
-    Class<? extends PortObjectSpec> getPortObjectSpecClass();
+    public String getStringRepresentation() {
+        return m_representation;
+    }
 
 }

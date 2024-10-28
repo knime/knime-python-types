@@ -44,15 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.ir;
+package org.knime.python3.types.port;
+
+import java.nio.file.Path;
 
 /**
- * Common interface of all supported intermediate representations.
+ * Represents the Python implementation of a converter.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param pythonModulePath path to the Python module containing the implementation
+ * @param pythonClassName the implementing class in the Python module
+ * @noreference this class is non-public API and only meant to be used by the Python node framework
+ * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public sealed interface IntermediateRepresentation permits PortObjectIntermediateRepresentation, PortObjectSpecIntermediateRepresentation {
+public record PythonImplementation(Path pythonModulePath, String pythonClassName) {
 
+    /**
+     * @return folder containing the Python module
+     */
+    public Path parentFolder() {
+        return pythonModulePath.getParent();
+    }
+
+    /**
+     * @return name of the Python module (without file extension)
+     */
+    public String moduleName() {
+        var fileNameWithExtension = pythonModulePath.getFileName().toString();
+        return fileNameWithExtension.substring(0, fileNameWithExtension.lastIndexOf("."));
+    }
 }

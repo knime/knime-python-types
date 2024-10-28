@@ -44,45 +44,15 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 5, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.convert;
-
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.python3.types.port.api.ir.PortObjectIntermediateRepresentation;
-import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentation;
+package org.knime.python3.types.port.ir;
 
 /**
- * Converts a {@link PortObjectIntermediateRepresentation} into a {@link PortObject}.
+ * Common interface of all supported intermediate representations.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <O> the type of PortObject used by this converter
- * @param <T> the type of transfer used for the object
- * @param <S> the type of spec used by this converter
- * @param <V> the type of transfer used for the spec
  */
-public interface PyToKnimePortObjectConverter<O extends PortObject, T extends PortObjectIntermediateRepresentation, S extends PortObjectSpec, V extends PortObjectSpecIntermediateRepresentation>
-    extends PythonPortObjectConverter<O, S> {
-
-    /**
-     * Creates a {@link PortObject} from the data in a transfer object that is created on the Python side.
-     *
-     * @param transfer filled with data on the Python side
-     * @param spec created by
-     *            {@link #convertSpecFromPython(PortObjectSpecIntermediateRepresentation, PortObjectSpecConversionContext)}
-     * @param context in which the conversion happens
-     * @return the {@link PortObject}
-     */
-    O convertPortObjectFromPython(T transfer, S spec, PortObjectConversionContext context);
-
-    /**
-     * Creates a {@link PortObjectSpec} from the data in a transfer object that is created on the Python side.
-     *
-     * @param transfer filled with data on the Python side
-     * @param context in which the conversion happens
-     * @return the {@link PortObjectSpec}
-     */
-    S convertSpecFromPython(final V transfer, final PortObjectSpecConversionContext context);
+public sealed interface IntermediateRepresentation permits PortObjectIntermediateRepresentation, PortObjectSpecIntermediateRepresentation {
 
 }

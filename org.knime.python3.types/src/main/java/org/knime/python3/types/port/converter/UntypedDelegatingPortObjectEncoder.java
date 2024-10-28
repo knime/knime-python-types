@@ -46,27 +46,24 @@
  * History
  *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.framework;
+package org.knime.python3.types.port.converter;
 
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.python3.types.port.api.convert.KnimeToPyPortObjectConverter;
-import org.knime.python3.types.port.api.convert.PortObjectConversionContext;
-import org.knime.python3.types.port.api.convert.PortObjectSpecConversionContext;
-import org.knime.python3.types.port.api.ir.PortObjectIntermediateRepresentation;
-import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentation;
+import org.knime.python3.types.port.ir.PortObjectIntermediateRepresentation;
+import org.knime.python3.types.port.ir.PortObjectSpecIntermediateRepresentation;
 
 /**
- * Strips the generics from a {@link KnimeToPyPortObjectConverter} for subsequent use in the framework where the
+ * Strips the generics from a {@link PortObjectEncoder} for subsequent use in the framework where the
  * specific types are unknown.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @noreference this class is non-public API and only meant to be used by the Python node framework
  * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public final class UntypedKnimeToPyPortObjectConverterAdapter implements UntypedPortObjectConverter {
+public final class UntypedDelegatingPortObjectEncoder implements UntypedPortObjectConverter {
 
-    private final GenericAbsorbingConverter<?, ?> m_absorbingConverter;
+    private final GenericAbsorbingEncoder<?, ?> m_absorbingEncoder;
 
     private final Class<? extends PortObject> m_poClass;
 
@@ -75,11 +72,11 @@ public final class UntypedKnimeToPyPortObjectConverterAdapter implements Untyped
     /**
      * @param <O> the type of PortObject
      * @param <S> the type of PortObjectSpec
-     * @param typedConverter the typed {@link KnimeToPyPortObjectConverter} that is wrapped by the untyped converter
+     * @param typedConverter the typed {@link PortObjectEncoder} that is wrapped by the untyped converter
      */
-    public <O extends PortObject, S extends PortObjectSpec> UntypedKnimeToPyPortObjectConverterAdapter(
-        final KnimeToPyPortObjectConverter<O, S> typedConverter) {
-        m_absorbingConverter = new GenericAbsorbingConverter<>(typedConverter);
+    public <O extends PortObject, S extends PortObjectSpec> UntypedDelegatingPortObjectEncoder(
+        final PortObjectEncoder<O, S> typedConverter) {
+        m_absorbingEncoder = new GenericAbsorbingEncoder<>(typedConverter);
         m_poClass = typedConverter.getPortObjectClass();
         m_specClass = typedConverter.getPortObjectSpecClass();
     }
@@ -91,9 +88,9 @@ public final class UntypedKnimeToPyPortObjectConverterAdapter implements Untyped
      * @param context in which the conversion happens
      * @return the {@link PortObjectSpecIntermediateRepresentation} representing the spec
      */
-    public PortObjectSpecIntermediateRepresentation convertSpecToPython(final PortObjectSpec spec,
+    public PortObjectSpecIntermediateRepresentation encodePortObjectSpec(final PortObjectSpec spec,
         final PortObjectSpecConversionContext context) {
-        return m_absorbingConverter.convertSpecToPython(spec, context);
+        return m_absorbingEncoder.encodePortObjectSpec(spec, context);
     }
 
     /**
@@ -103,9 +100,9 @@ public final class UntypedKnimeToPyPortObjectConverterAdapter implements Untyped
      * @param context in which the conversion happens
      * @return the {@link PortObjectIntermediateRepresentation} representing the port object
      */
-    public PortObjectIntermediateRepresentation convertPortObjectToPython(final PortObject portObject,
+    public PortObjectIntermediateRepresentation encodePortObject(final PortObject portObject,
         final PortObjectConversionContext context) {
-        return m_absorbingConverter.convertPortObjectToPython(portObject, context);
+        return m_absorbingEncoder.encodePortObject(portObject, context);
     }
 
     @Override
@@ -118,27 +115,27 @@ public final class UntypedKnimeToPyPortObjectConverterAdapter implements Untyped
         return m_specClass;
     }
 
-    private static final class GenericAbsorbingConverter<O extends PortObject, S extends PortObjectSpec> {
-        private final KnimeToPyPortObjectConverter<O, S> m_typedConverter;
+    private static final class GenericAbsorbingEncoder<O extends PortObject, S extends PortObjectSpec> {
+        private final PortObjectEncoder<O, S> m_typedConverter;
 
-        GenericAbsorbingConverter(final KnimeToPyPortObjectConverter<O, S> typedConverter) {
+        GenericAbsorbingEncoder(final PortObjectEncoder<O, S> typedConverter) {
             m_typedConverter = typedConverter;
         }
 
         @SuppressWarnings("unchecked")
-        PortObjectIntermediateRepresentation convertPortObjectToPython(final PortObject portObject,
+        PortObjectIntermediateRepresentation encodePortObject(final PortObject portObject,
             final PortObjectConversionContext context) {
             assert m_typedConverter.getPortObjectClass()
                 .isInstance(portObject) : "The provided portObject is not compatible with the converter.";
-            return m_typedConverter.convertPortObjectToPython((O)portObject, context);
+            return m_typedConverter.encodePortObject((O)portObject, context);
         }
 
         @SuppressWarnings("unchecked")
-        PortObjectSpecIntermediateRepresentation convertSpecToPython(final PortObjectSpec spec,
+        PortObjectSpecIntermediateRepresentation encodePortObjectSpec(final PortObjectSpec spec,
             final PortObjectSpecConversionContext context) {
             assert m_typedConverter.getPortObjectSpecClass()
                 .isInstance(spec) : "The provided spec is not compatible with the converter.";
-            return m_typedConverter.convertSpecToPython((S)spec, context);
+            return m_typedConverter.encodePortObjectSpec((S)spec, context);
         }
     }
 

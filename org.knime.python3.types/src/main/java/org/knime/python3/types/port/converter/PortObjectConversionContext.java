@@ -44,22 +44,15 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 7, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Aug 9, 2024 (adrian.nembach): created
  */
-package org.knime.python3.types.port.framework;
+package org.knime.python3.types.port.converter;
 
 /**
- * Encapsulates an {@link UntypedPortObjectConverter} and the extension that contributes it.
+ * Context for conversions. Empty for now but might be extended in future versions.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <U> the type of {@link UntypedPortObjectConverter} provided by this extension
- * @param converter the {@link UntypedPortObjectConverter}
- * @param pythonImplementation of the converter
- * @param contributor the id of the extension that contributes the converter
- * @noreference this class is non-public API and only meant to be used by the Python node framework
- * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public record PythonPortConverterExtension<U extends UntypedPortObjectConverter>(U converter,
-    PythonImplementation pythonImplementation, String contributor) {
+public interface PortObjectConversionContext extends PortObjectSpecConversionContext {
 
 }

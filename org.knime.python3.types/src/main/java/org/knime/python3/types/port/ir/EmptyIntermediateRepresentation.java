@@ -46,7 +46,7 @@
  * History
  *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.ir;
+package org.knime.python3.types.port.ir;
 
 /**
  * Indicates that no intermediate representation is needed because there is no data. Typically used for PortObjects in
