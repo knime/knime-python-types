@@ -50,11 +50,11 @@ package org.knime.python3.types.port.api.convert;
 
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.python3.types.port.api.transfer.PythonPortObjectSpecTransfer;
-import org.knime.python3.types.port.api.transfer.PythonPortObjectTransfer;
+import org.knime.python3.types.port.api.ir.PortObjectIntermediateRepresentation;
+import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentation;
 
 /**
- * Converts a {@link PortObject} into a {@link PythonPortObjectTransfer}.
+ * Converts a {@link PortObject} into a {@link PortObjectIntermediateRepresentation}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <O> The type of {@link PortObject}
@@ -64,20 +64,20 @@ public interface KnimeToPyPortObjectConverter<O extends PortObject, S extends Po
     extends PythonPortObjectConverter<O, S> {
 
     /**
-     * Converts the given {@link PortObject} into a {@link PythonPortObjectTransfer} that can be parsed on the Python side.
+     * Converts the given {@link PortObject} into a {@link PortObjectIntermediateRepresentation} that can be parsed on the Python side.
      * @param portObject to convert
      * @param context in which the conversion happens
      * @return the transfer object
      */
-    PythonPortObjectTransfer convertPortObjectToPython(O portObject, PortObjectConversionContext context);
+    PortObjectIntermediateRepresentation convertPortObjectToPython(O portObject, PortObjectConversionContext context);
 
     /**
-     * Converts the given {@link PortObjectSpec} into a {@link PythonPortObjectSpecTransfer} that can be parsed on the Python side.
+     * Converts the given {@link PortObjectSpec} into a {@link PortObjectSpecIntermediateRepresentation} that can be parsed on the Python side.
      *
      * @param spec to convert
      * @param context in which the conversion happens
      * @return the transfer object
      */
-    PythonPortObjectSpecTransfer convertSpecToPython(final S spec, final PortObjectSpecConversionContext context);
+    PortObjectSpecIntermediateRepresentation convertSpecToPython(final S spec, final PortObjectSpecConversionContext context);
 
 }

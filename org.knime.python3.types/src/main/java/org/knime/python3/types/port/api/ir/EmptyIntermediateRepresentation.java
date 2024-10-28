@@ -46,14 +46,15 @@
  * History
  *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.transfer;
+package org.knime.python3.types.port.api.ir;
 
 /**
- * Indicates that no transfer is needed. Typically used for PortObjects in which all data is stored in the spec.
+ * Indicates that no intermediate representation is needed because there is no data. Typically used for PortObjects in
+ * which all data is stored in the spec.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public enum NonePythonTransfer implements PythonPortObjectTransfer {
+public enum EmptyIntermediateRepresentation implements PortObjectIntermediateRepresentation {
 
         /**
          * Singleton instance.

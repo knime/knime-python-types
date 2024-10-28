@@ -46,13 +46,13 @@
  * History
  *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.transfer;
+package org.knime.python3.types.port.api.ir;
 
 /**
- * Common interface of transfers supported for port objects.
+ * Common interface of all supported intermediate representations.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public sealed interface PythonPortObjectTransfer extends PythonTransfer permits NonePythonTransfer, StringPythonTransfer {
+public sealed interface IntermediateRepresentation permits PortObjectIntermediateRepresentation, PortObjectSpecIntermediateRepresentation {
 
 }

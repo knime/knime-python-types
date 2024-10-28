@@ -50,11 +50,11 @@ package org.knime.python3.types.port.api.convert;
 
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.python3.types.port.api.transfer.PythonPortObjectSpecTransfer;
-import org.knime.python3.types.port.api.transfer.PythonPortObjectTransfer;
+import org.knime.python3.types.port.api.ir.PortObjectIntermediateRepresentation;
+import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentation;
 
 /**
- * Converts a {@link PythonPortObjectTransfer} into a {@link PortObject}.
+ * Converts a {@link PortObjectIntermediateRepresentation} into a {@link PortObject}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <O> the type of PortObject used by this converter
@@ -62,7 +62,7 @@ import org.knime.python3.types.port.api.transfer.PythonPortObjectTransfer;
  * @param <S> the type of spec used by this converter
  * @param <V> the type of transfer used for the spec
  */
-public interface PyToKnimePortObjectConverter<O extends PortObject, T extends PythonPortObjectTransfer, S extends PortObjectSpec, V extends PythonPortObjectSpecTransfer>
+public interface PyToKnimePortObjectConverter<O extends PortObject, T extends PortObjectIntermediateRepresentation, S extends PortObjectSpec, V extends PortObjectSpecIntermediateRepresentation>
     extends PythonPortObjectConverter<O, S> {
 
     /**
@@ -70,7 +70,7 @@ public interface PyToKnimePortObjectConverter<O extends PortObject, T extends Py
      *
      * @param transfer filled with data on the Python side
      * @param spec created by
-     *            {@link #convertSpecFromPython(PythonPortObjectSpecTransfer, PortObjectSpecConversionContext)}
+     *            {@link #convertSpecFromPython(PortObjectSpecIntermediateRepresentation, PortObjectSpecConversionContext)}
      * @param context in which the conversion happens
      * @return the {@link PortObject}
      */

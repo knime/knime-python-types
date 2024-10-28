@@ -53,8 +53,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.python3.types.port.api.convert.KnimeToPyPortObjectConverter;
 import org.knime.python3.types.port.api.convert.PortObjectConversionContext;
 import org.knime.python3.types.port.api.convert.PortObjectSpecConversionContext;
-import org.knime.python3.types.port.api.transfer.PythonPortObjectSpecTransfer;
-import org.knime.python3.types.port.api.transfer.PythonPortObjectTransfer;
+import org.knime.python3.types.port.api.ir.PortObjectIntermediateRepresentation;
+import org.knime.python3.types.port.api.ir.PortObjectSpecIntermediateRepresentation;
 
 /**
  * Strips the generics from a {@link KnimeToPyPortObjectConverter} for subsequent use in the framework where the
@@ -85,25 +85,25 @@ public final class UntypedKnimeToPyPortObjectConverter implements UntypedPythonP
     }
 
     /**
-     * Converts a {@link PortObjectSpec} into a {@link PythonPortObjectSpecTransfer}.
+     * Converts a {@link PortObjectSpec} into a {@link PortObjectSpecIntermediateRepresentation}.
      *
      * @param spec the spec to convert
      * @param context in which the conversion happens
-     * @return the {@link PythonPortObjectSpecTransfer} representing the spec
+     * @return the {@link PortObjectSpecIntermediateRepresentation} representing the spec
      */
-    public PythonPortObjectSpecTransfer convertSpecToPython(final PortObjectSpec spec,
+    public PortObjectSpecIntermediateRepresentation convertSpecToPython(final PortObjectSpec spec,
         final PortObjectSpecConversionContext context) {
         return m_absorbingConverter.convertSpecToPython(spec, context);
     }
 
     /**
-     * Converts a {@link PortObject} into a {@link PythonPortObjectTransfer}.
+     * Converts a {@link PortObject} into a {@link PortObjectIntermediateRepresentation}.
      *
      * @param portObject the PortObject to convert
      * @param context in which the conversion happens
-     * @return the {@link PythonPortObjectTransfer} representing the port object
+     * @return the {@link PortObjectIntermediateRepresentation} representing the port object
      */
-    public PythonPortObjectTransfer convertPortObjectToPython(final PortObject portObject,
+    public PortObjectIntermediateRepresentation convertPortObjectToPython(final PortObject portObject,
         final PortObjectConversionContext context) {
         return m_absorbingConverter.convertPortObjectToPython(portObject, context);
     }
@@ -126,7 +126,7 @@ public final class UntypedKnimeToPyPortObjectConverter implements UntypedPythonP
         }
 
         @SuppressWarnings("unchecked")
-        PythonPortObjectTransfer convertPortObjectToPython(final PortObject portObject,
+        PortObjectIntermediateRepresentation convertPortObjectToPython(final PortObject portObject,
             final PortObjectConversionContext context) {
             assert m_typedConverter.getPortObjectClass()
                 .isInstance(portObject) : "The provided portObject is not compatible with the converter.";
@@ -134,7 +134,7 @@ public final class UntypedKnimeToPyPortObjectConverter implements UntypedPythonP
         }
 
         @SuppressWarnings("unchecked")
-        PythonPortObjectSpecTransfer convertSpecToPython(final PortObjectSpec spec,
+        PortObjectSpecIntermediateRepresentation convertSpecToPython(final PortObjectSpec spec,
             final PortObjectSpecConversionContext context) {
             assert m_typedConverter.getPortObjectSpecClass()
                 .isInstance(spec) : "The provided spec is not compatible with the converter.";

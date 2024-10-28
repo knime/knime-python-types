@@ -46,30 +46,13 @@
  * History
  *   Sep 4, 2024 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.python3.types.port.api.transfer;
+package org.knime.python3.types.port.api.ir;
 
 /**
- * String-based Python transfer. Often the String is a JSON but we refrain from a specific JSON transfer to avoid the
- * dependency on a specific JSON framework.
+ * Common interface of intermediate representations supported for port objects.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class StringPythonTransfer implements PythonPortObjectSpecTransfer, PythonPortObjectTransfer {
-
-    private final String m_representation;
-
-    /**
-     * @param representation of the data
-     */
-    public StringPythonTransfer(final String representation) {
-        m_representation = representation;
-    }
-
-    /**
-     * @return the string representing the spec or object
-     */
-    public String getStringRepresentation() {
-        return m_representation;
-    }
+public sealed interface PortObjectIntermediateRepresentation extends IntermediateRepresentation permits EmptyIntermediateRepresentation, StringIntermediateRepresentation {
 
 }
