@@ -2,6 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="PythonValueFactory" name="PythonValueFactory" schema="schema/PythonValueFactory.exsd"/>
-   <extension-point id="PythonNodesFrameworkExtension" name="PythonNodesFrameworkExtension" schema="schema/PythonNodesFrameworkExtension.exsd"/>
+   <extension-point id="PythonPortObjectConverter" name="PythonPortObjectConverter" schema="schema/PythonPortObjectConverter.exsd"/>
 
 </plugin>

@@ -51,7 +51,7 @@ package org.knime.python3.types.port;
 import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
 
 /**
- * Encapsulates an {@link UntypedPortObjectConverter} and the extension that contributes it.
+ * Binds an {@link UntypedPortObjectConverter} to the Python module and extension that contributes it.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @param <U> the type of {@link UntypedPortObjectConverter} provided by this extension
@@ -61,7 +61,8 @@ import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
  * @noreference this class is non-public API and only meant to be used by the Python node framework
  * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public record PythonPortConverterExtension<U extends UntypedPortObjectConverter>(U converter,
-    PythonImplementation pythonImplementation, String contributor) {
-
+public final record PythonPortObjectConverterExtension<U extends UntypedPortObjectConverter>( //
+    U converter, //
+    PythonImplementation pythonImplementation, //
+    String contributor) {
 }

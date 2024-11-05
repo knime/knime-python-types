@@ -63,11 +63,11 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
-import org.knime.python3.types.port.converter.PortObjectEncoder;
 import org.knime.python3.types.port.converter.PortObjectDecoder;
+import org.knime.python3.types.port.converter.PortObjectEncoder;
+import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectDecoder;
 import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectEncoder;
 import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
-import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectDecoder;
 
 /**
  * Parses the {@code org.knime.python3.types.PythonNodesFrameworkExtensionExtension} extension point.
@@ -76,24 +76,27 @@ import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectDecoder
  * @noreference this class is non-public API and only meant to be used by the Python node framework
  * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public final class PythonNodesFrameworkExtensionPointParser {
+public final class PortObjectConverterExtensionPoint {
 
     private static final String PY_TO_KNIME_CONVERTER_KEY = "PythonToKnimePortObjectConverter";
 
     private static final String KNIME_TO_PY_CONVERTER_KEY = "KnimeToPythonPortObjectConverter";
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(PythonNodesFrameworkExtensionPointParser.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PortObjectConverterExtensionPoint.class);
 
-    private static final String EXTENSION_POINT = "org.knime.python3.types.PythonNodesFrameworkExtension";
+    private static final String EXTENSION_POINT = "org.knime.python3.types.PythonPortObjectConverter";
 
-    private static List<PythonPortConverterExtension<UntypedDelegatingPortObjectEncoder>> KNIME_TO_PY_PORT_CONVERTERS;
+    private static List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>> KNIME_TO_PY_PORT_CONVERTERS;
 
-    private static List<PythonPortConverterExtension<UntypedDelegatingPortObjectDecoder>> PY_TO_KNIME_PORT_CONVERTERS;
+    private static List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectDecoder>> PY_TO_KNIME_PORT_CONVERTERS;
+
+    private PortObjectConverterExtensionPoint() {
+    }
 
     /**
      * @return the unmodifiable list of registered extensions for converting from KNIME to Python
      */
-    public static synchronized List<PythonPortConverterExtension<UntypedDelegatingPortObjectEncoder>>
+    public static synchronized List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>>
         getKnimeToPyConverters() {
         if (KNIME_TO_PY_PORT_CONVERTERS == null) {
             KNIME_TO_PY_PORT_CONVERTERS = parseConverters(KNIME_TO_PY_CONVERTER_KEY, PortObjectEncoder.class,
@@ -105,7 +108,7 @@ public final class PythonNodesFrameworkExtensionPointParser {
     /**
      * @return the unmodifiable list of registered extensions for converting from Python to KNIME
      */
-    public static synchronized List<PythonPortConverterExtension<UntypedDelegatingPortObjectDecoder>>
+    public static synchronized List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectDecoder>>
         getPyToKnimeConverters() {
         if (PY_TO_KNIME_PORT_CONVERTERS == null) {
             PY_TO_KNIME_PORT_CONVERTERS = parseConverters(PY_TO_KNIME_CONVERTER_KEY, PortObjectDecoder.class,
@@ -114,14 +117,13 @@ public final class PythonNodesFrameworkExtensionPointParser {
         return PY_TO_KNIME_PORT_CONVERTERS;
     }
 
-    private static <T, U extends UntypedPortObjectConverter> List<PythonPortConverterExtension<U>>
-        parseConverters(final String converterTag, final Class<T> typedConverterClass,
-            final Function<T, U> typeStripper) {
+    private static <T, U extends UntypedPortObjectConverter> List<PythonPortObjectConverterExtension<U>> parseConverters(
+        final String converterTag, final Class<T> typedConverterClass, final Function<T, U> typeStripper) {
         return parseExtensionPoint(converterTag,
             e -> instantiateJavaConverter(e, typedConverterClass).map(typeStripper)).toList();
     }
 
-    static <T extends UntypedPortObjectConverter> Stream<PythonPortConverterExtension<T>> parseExtensionPoint(
+    static <T extends UntypedPortObjectConverter> Stream<PythonPortObjectConverterExtension<T>> parseExtensionPoint(
         final String converterTag, final Function<IConfigurationElement, Optional<T>> converterParser) {
         return extensionStream()//
             .flatMap(e -> Stream.of(e.getConfigurationElements())).filter(c -> converterTag.equals(c.getName()))
@@ -129,11 +131,11 @@ public final class PythonNodesFrameworkExtensionPointParser {
     }
 
     private static <T extends UntypedPortObjectConverter>
-        Function<IConfigurationElement, Optional<PythonPortConverterExtension<T>>>
+        Function<IConfigurationElement, Optional<PythonPortObjectConverterExtension<T>>>
         toExtensionParser(final Function<IConfigurationElement, Optional<T>> converterParser) {
         return e -> converterParser.apply(e)//
             .flatMap(converter -> getPythonImplementation(e)//
-                .map(pythonImpl -> new PythonPortConverterExtension<>(converter, pythonImpl, getContributor(e))));
+                .map(pythonImpl -> new PythonPortObjectConverterExtension<>(converter, pythonImpl, getContributor(e))));
     }
 
     private static Stream<IExtension> extensionStream() {
@@ -148,8 +150,8 @@ public final class PythonNodesFrameworkExtensionPointParser {
         try {
             return Optional.of(clazz.cast(configElement.createExecutableExtension("JavaConverterClass")));
         } catch (Exception ex) {
-            LOGGER.error("Failed to instantiate %s provided by %s.".formatted(clazz.getSimpleName(), getContributor(configElement)),
-                ex);
+            LOGGER.error("Failed to instantiate %s provided by %s.".formatted(clazz.getSimpleName(),
+                getContributor(configElement)), ex);
             return Optional.empty();
         }
     }
