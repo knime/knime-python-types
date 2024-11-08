@@ -61,66 +61,66 @@ import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectEncoder
 import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
 
 /**
- * Manages access to all PortObjectConverters registered at the extension point.
+ * Manages access to all PortObjectConverters used on the Java side which are registered at the extension point.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class ExtensionPortObjectConverterRegistry {
 
-    private final ClassHierarchyMap<PortObject, UntypedDelegatingPortObjectEncoder> m_knimeToPyByPoClass =
+    private final ClassHierarchyMap<PortObject, UntypedDelegatingPortObjectEncoder> m_encoderByObjectClass =
         new ClassHierarchyMap<>(PortObject.class);
 
-    private final ClassHierarchyMap<PortObjectSpec, UntypedDelegatingPortObjectEncoder> m_knimeToPyBySpecClass =
+    private final ClassHierarchyMap<PortObjectSpec, UntypedDelegatingPortObjectEncoder> m_encoderBySpecClass =
         new ClassHierarchyMap<>(PortObjectSpec.class);
 
-    private final Map<String, UntypedDelegatingPortObjectEncoder> m_knimeToPyByPoClassName = new HashMap<>();
+    private final Map<String, UntypedDelegatingPortObjectEncoder> m_encoderByObjectClassName = new HashMap<>();
 
-    private final Map<String, UntypedDelegatingPortObjectDecoder> m_pyToKnimeByPoClass = new HashMap<>();
+    private final Map<String, UntypedDelegatingPortObjectDecoder> m_decoderByObjectClassName = new HashMap<>();
 
-    private final Map<String, UntypedDelegatingPortObjectDecoder> m_pyToKnimeBySpecClass = new HashMap<>();
+    private final Map<String, UntypedDelegatingPortObjectDecoder> m_decoderBySpecClassName = new HashMap<>();
 
-    public ExtensionPortObjectConverterRegistry(final Stream<UntypedDelegatingPortObjectEncoder> knimeToPy,
-        final Stream<UntypedDelegatingPortObjectDecoder> pyToKnime) {
-        knimeToPy.forEach(this::registerKnimeToPy);
-        pyToKnime.forEach(this::registerPyToKnime);
+    public ExtensionPortObjectConverterRegistry(final Stream<UntypedDelegatingPortObjectEncoder> encoders,
+        final Stream<UntypedDelegatingPortObjectDecoder> decoders) {
+        encoders.forEach(this::registerEncoder);
+        decoders.forEach(this::registerDecoder);
     }
 
-    private void registerKnimeToPy(final UntypedDelegatingPortObjectEncoder knimeToPy) {
-        m_knimeToPyByPoClass.put(knimeToPy.getPortObjectClass(), knimeToPy);
-        m_knimeToPyBySpecClass.put(knimeToPy.getPortObjectSpecClass(), knimeToPy);
-        m_knimeToPyByPoClassName.put(knimeToPy.getPortObjectClass().getName(), knimeToPy);
+    private void registerEncoder(final UntypedDelegatingPortObjectEncoder encoder) {
+        m_encoderByObjectClass.put(encoder.getPortObjectClass(), encoder);
+        m_encoderBySpecClass.put(encoder.getPortObjectSpecClass(), encoder);
+        m_encoderByObjectClassName.put(encoder.getPortObjectClass().getName(), encoder);
     }
 
-    private void registerPyToKnime(final UntypedDelegatingPortObjectDecoder pyToKnime) {
-        m_pyToKnimeByPoClass.put(pyToKnime.getPortObjectClass().getName(), pyToKnime);
-        m_pyToKnimeBySpecClass.put(pyToKnime.getPortObjectSpecClass().getName(), pyToKnime);
-    }
-
-    public UntypedDelegatingPortObjectEncoder
-        getKnimeToPyForObject(final Class<? extends PortObject> portObjectClass) {
-        return m_knimeToPyByPoClass.getHierarchyAware(portObjectClass);
+    private void registerDecoder(final UntypedDelegatingPortObjectDecoder decoder) {
+        m_decoderByObjectClassName.put(decoder.getPortObjectClass().getName(), decoder);
+        m_decoderBySpecClassName.put(decoder.getPortObjectSpecClass().getName(), decoder);
     }
 
     public UntypedDelegatingPortObjectEncoder
-        getKnimeToPyForSpec(final Class<? extends PortObjectSpec> portObjectSpecClass) {
-        return m_knimeToPyBySpecClass.getHierarchyAware(portObjectSpecClass);
+        getEncoderForPortObject(final Class<? extends PortObject> portObjectClass) {
+        return m_encoderByObjectClass.getHierarchyAware(portObjectClass);
     }
 
-    public UntypedDelegatingPortObjectDecoder getPyToKnimeForObject(final String objJavaClassName) {
-        return m_pyToKnimeByPoClass.get(objJavaClassName);
+    public UntypedDelegatingPortObjectEncoder
+        getEncoderForSpec(final Class<? extends PortObjectSpec> portObjectSpecClass) {
+        return m_encoderBySpecClass.getHierarchyAware(portObjectSpecClass);
     }
 
-    public UntypedDelegatingPortObjectDecoder getPyToKnimeForSpec(final String specJavaClassName) {
-        return m_pyToKnimeBySpecClass.get(specJavaClassName);
+    public UntypedDelegatingPortObjectDecoder getDecoderForObject(final String objJavaClassName) {
+        return m_decoderByObjectClassName.get(objJavaClassName);
+    }
+
+    public UntypedDelegatingPortObjectDecoder getDecoderForSpec(final String specJavaClassName) {
+        return m_decoderBySpecClassName.get(specJavaClassName);
     }
 
     // TODO return optional?
     public PortType getPortType(final String portObjectClassName) {
-        var knimeToPy = m_knimeToPyByPoClassName.get(portObjectClassName);
+        var knimeToPy = m_encoderByObjectClassName.get(portObjectClassName);
         if (knimeToPy != null) {
             return getPortType(knimeToPy);
         }
-        var pyToKnime = m_pyToKnimeByPoClass.get(portObjectClassName);
+        var pyToKnime = m_decoderByObjectClassName.get(portObjectClassName);
         if (pyToKnime != null) {
             return getPortType(pyToKnime);
         }

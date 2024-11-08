@@ -70,7 +70,7 @@ import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectEncoder
 import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
 
 /**
- * Parses the {@code org.knime.python3.types.PythonNodesFrameworkExtensionExtension} extension point.
+ * Parses the {@code org.knime.python3.types.PythonPortObjectConverter} extension point.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @noreference this class is non-public API and only meant to be used by the Python node framework
