@@ -18,10 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <choice>
-               <element ref="KnimeToPythonPortObjectConverter"/>
-               <element ref="PythonToKnimePortObjectConverter"/>
-            </choice>
+            <element ref="Module"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -50,6 +47,43 @@
       </complexType>
    </element>
 
+   <element name="Module">
+      <annotation>
+         <documentation>
+            Note that each Python module containing port object converters needs to be in its own &lt;Module&gt; element, even if the Python modules are located in the same directory on disk (i.e. have the same &quot;modulePath&quot;).
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <choice>
+               <element ref="KnimeToPythonPortObjectConverter"/>
+               <element ref="PythonToKnimePortObjectConverter"/>
+            </choice>
+         </sequence>
+         <attribute name="modulePath" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Path to be put on the Python path when importing the module containing KnimeToPythonPortObjectConverters and PythonToKnimePortObjectCoverters.
+
+The path should point to a folder that contains the folder structure &quot;myorganization/ports/&quot;. Inside &quot;ports&quot; there should be the module containing the PythonValueFactories. Specify its name in the &quot;moduleName&quot; attribute.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="resource"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="moduleName" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Module name that should be imported to find the KnimeToPythonPortObjectConverters and PythonToKnimePortObjectCoverters.
+
+This should be of the form &quot;myorganization.ports.mymodule&quot; for extension types.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
    <element name="KnimeToPythonPortObjectConverter">
       <annotation>
          <documentation>
@@ -64,16 +98,6 @@
                </documentation>
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.knime.python3.types.port.KnimeToPythonPortObjectConverter"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="PythonModule" type="string" use="required">
-            <annotation>
-               <documentation>
-                  Python module containing the Python implementation of the converter.
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="resource"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -101,16 +125,6 @@
                </documentation>
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.knime.python3.types.port.PythonToKnimePortObjectConverter"/>
-               </appinfo>
-            </annotation>
-         </attribute>
-         <attribute name="PythonModule" type="string" use="required">
-            <annotation>
-               <documentation>
-                  Python module containing the Python implementation of the converter.
-               </documentation>
-               <appinfo>
-                  <meta.attribute kind="resource"/>
                </appinfo>
             </annotation>
          </attribute>

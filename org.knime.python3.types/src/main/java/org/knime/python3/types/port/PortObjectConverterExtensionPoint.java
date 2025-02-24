@@ -52,14 +52,14 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.FileUtil;
@@ -67,7 +67,6 @@ import org.knime.python3.types.port.converter.PortObjectDecoder;
 import org.knime.python3.types.port.converter.PortObjectEncoder;
 import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectDecoder;
 import org.knime.python3.types.port.converter.UntypedDelegatingPortObjectEncoder;
-import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
 
 /**
  * Parses the {@code org.knime.python3.types.PythonPortObjectConverter} extension point.
@@ -78,31 +77,84 @@ import org.knime.python3.types.port.converter.UntypedPortObjectConverter;
  */
 public final class PortObjectConverterExtensionPoint {
 
-    private static final String PY_TO_KNIME_CONVERTER_KEY = "PythonToKnimePortObjectConverter";
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(PortObjectConverterExtensionPoint.class);
 
     private static final String KNIME_TO_PY_CONVERTER_KEY = "KnimeToPythonPortObjectConverter";
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(PortObjectConverterExtensionPoint.class);
+    private static final String PY_TO_KNIME_CONVERTER_KEY = "PythonToKnimePortObjectConverter";
 
     private static final String EXTENSION_POINT = "org.knime.python3.types.PythonPortObjectConverter";
 
-    private static List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>> KNIME_TO_PY_PORT_CONVERTERS;
+    private static final PortObjectConverterExtensionPoint INSTANCE = new PortObjectConverterExtensionPoint();
 
-    private static List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectDecoder>> PY_TO_KNIME_PORT_CONVERTERS;
+    private List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>> m_knimeToPyPortConverters;
+
+    private List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectDecoder>> m_pyToKnimePortConverters;
 
     private PortObjectConverterExtensionPoint() {
+        var knimeToPyPortConverters =
+            new ArrayList<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>>();
+        var pyToKnimePortConverters =
+            new ArrayList<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectDecoder>>();
+
+        var registry = Platform.getExtensionRegistry();
+        var extPoint = registry.getExtensionPoint(EXTENSION_POINT);
+        var moduleConfigElements = Arrays.stream(extPoint.getExtensions()) //
+            .flatMap(e -> Arrays.stream(e.getConfigurationElements())) //
+            .toArray(IConfigurationElement[]::new);
+
+        // Loop over module configurations
+        for (var moduleConfigElement : moduleConfigElements) {
+            var contributorName = getContributor(moduleConfigElement);
+
+            if (!"Module".equals(moduleConfigElement.getName())) {
+                LOGGER.errorWithFormat("Invalid extension point configuration by '%s': Expected 'Module' but got '%s'.",
+                    contributorName, moduleConfigElement.getName());
+                continue;
+            }
+
+            var moduleName = moduleConfigElement.getAttribute("moduleName");
+            var modulePath = extractModulePath(moduleConfigElement, moduleConfigElement.getAttribute("modulePath"));
+            if (modulePath.isEmpty()) {
+                // Note: We just skip this module and continue with the next one
+                // extractModulePath already logs the error
+                continue;
+            }
+
+            // Loop over converters
+            for (var converterConfigElement : moduleConfigElement.getChildren()) {
+                var pythonConverterClass = converterConfigElement.getAttribute("PythonConverterClass");
+                var pythonImplementation = new PythonImplementation(modulePath.get(), moduleName, pythonConverterClass);
+
+                if (KNIME_TO_PY_CONVERTER_KEY.equals(converterConfigElement.getName())) {
+                    instantiateJavaConverter(converterConfigElement, PortObjectEncoder.class) // get the java converter
+                        .map(UntypedDelegatingPortObjectEncoder::new) // strip types
+                        .map(encoder -> new PythonPortObjectConverterExtension<>(encoder, pythonImplementation,
+                            contributorName)) // create the extension
+                        .ifPresent(knimeToPyPortConverters::add); // add it to the list
+                } else if (PY_TO_KNIME_CONVERTER_KEY.equals(converterConfigElement.getName())) {
+                    instantiateJavaConverter(converterConfigElement, PortObjectDecoder.class) // get the java converter
+                        .map(UntypedDelegatingPortObjectDecoder::new) // strip types
+                        .map(decoder -> new PythonPortObjectConverterExtension<>(decoder, pythonImplementation,
+                            contributorName)) // create the extension
+                        .ifPresent(pyToKnimePortConverters::add); // add it to the list
+                } else {
+                    LOGGER.warn("Unknown converter type '%s' in module '%s'."
+                        .formatted(converterConfigElement.getName(), moduleName));
+                }
+            }
+        }
+
+        m_knimeToPyPortConverters = Collections.unmodifiableList(knimeToPyPortConverters);
+        m_pyToKnimePortConverters = Collections.unmodifiableList(pyToKnimePortConverters);
     }
 
     /**
      * @return the unmodifiable list of registered extensions for converting from KNIME to Python
      */
-    public static synchronized List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>>
+    public static List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectEncoder>>
         getKnimeToPyConverters() {
-        if (KNIME_TO_PY_PORT_CONVERTERS == null) {
-            KNIME_TO_PY_PORT_CONVERTERS = parseConverters(KNIME_TO_PY_CONVERTER_KEY, PortObjectEncoder.class,
-                UntypedDelegatingPortObjectEncoder::new);
-        }
-        return KNIME_TO_PY_PORT_CONVERTERS;
+        return INSTANCE.m_knimeToPyPortConverters;
     }
 
     /**
@@ -110,46 +162,14 @@ public final class PortObjectConverterExtensionPoint {
      */
     public static synchronized List<PythonPortObjectConverterExtension<UntypedDelegatingPortObjectDecoder>>
         getPyToKnimeConverters() {
-        if (PY_TO_KNIME_PORT_CONVERTERS == null) {
-            PY_TO_KNIME_PORT_CONVERTERS = parseConverters(PY_TO_KNIME_CONVERTER_KEY, PortObjectDecoder.class,
-                UntypedDelegatingPortObjectDecoder::new);
-        }
-        return PY_TO_KNIME_PORT_CONVERTERS;
-    }
-
-    private static <T, U extends UntypedPortObjectConverter> List<PythonPortObjectConverterExtension<U>> parseConverters(
-        final String converterTag, final Class<T> typedConverterClass, final Function<T, U> typeStripper) {
-        return parseExtensionPoint(converterTag,
-            e -> instantiateJavaConverter(e, typedConverterClass).map(typeStripper)).toList();
-    }
-
-    static <T extends UntypedPortObjectConverter> Stream<PythonPortObjectConverterExtension<T>> parseExtensionPoint(
-        final String converterTag, final Function<IConfigurationElement, Optional<T>> converterParser) {
-        return extensionStream()//
-            .flatMap(e -> Stream.of(e.getConfigurationElements())).filter(c -> converterTag.equals(c.getName()))
-            .map(toExtensionParser(converterParser)).flatMap(Optional::stream);
-    }
-
-    private static <T extends UntypedPortObjectConverter>
-        Function<IConfigurationElement, Optional<PythonPortObjectConverterExtension<T>>>
-        toExtensionParser(final Function<IConfigurationElement, Optional<T>> converterParser) {
-        return e -> converterParser.apply(e)//
-            .flatMap(converter -> getPythonImplementation(e)//
-                .map(pythonImpl -> new PythonPortObjectConverterExtension<>(converter, pythonImpl, getContributor(e))));
-    }
-
-    private static Stream<IExtension> extensionStream() {
-        var registry = Platform.getExtensionRegistry();
-        var extPoint = registry.getExtensionPoint(EXTENSION_POINT);
-        IExtension[] extensions = extPoint.getExtensions();
-        return Stream.of(extensions);
+        return INSTANCE.m_pyToKnimePortConverters;
     }
 
     private static <T> Optional<T> instantiateJavaConverter(final IConfigurationElement configElement,
         final Class<T> clazz) {
         try {
             return Optional.of(clazz.cast(configElement.createExecutableExtension("JavaConverterClass")));
-        } catch (Exception ex) {
+        } catch (Exception ex) { // NOSONAR: We catch everything because we do not want to fail initialization
             LOGGER.error("Failed to instantiate %s provided by %s.".formatted(clazz.getSimpleName(),
                 getContributor(configElement)), ex);
             return Optional.empty();
@@ -160,11 +180,6 @@ public final class PortObjectConverterExtensionPoint {
         return element.getContributor().getName();
     }
 
-    private static Optional<PythonImplementation> getPythonImplementation(final IConfigurationElement configElement) {
-        return extractModulePath(configElement, configElement.getAttribute("PythonModule"))//
-            .map(p -> new PythonImplementation(p, configElement.getAttribute("PythonConverterClass")));
-    }
-
     private static Optional<Path> extractModulePath(final IConfigurationElement element, final String resourcePath) {
         final String contributor = element.getContributor().getName();
         final var bundle = Platform.getBundle(contributor);
@@ -173,7 +188,7 @@ public final class PortObjectConverterExtensionPoint {
 
             if (moduleUrl == null) {
                 LOGGER.coding("Could not find module path '%s' in bundle '%s'.".formatted(resourcePath, contributor)
-                    + " Please make sure that the extension is configured correctly and that the Python files are included "
+                    + " Make sure that the extension is configured correctly and that the Python files are included "
                     + "in your build.properties");
                 return Optional.empty();
             }

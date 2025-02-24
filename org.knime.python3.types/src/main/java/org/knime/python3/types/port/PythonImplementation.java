@@ -54,25 +54,11 @@ import java.nio.file.Path;
  * Represents the Python implementation of a converter.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param pythonModulePath path to the Python module containing the implementation
+ * @param pythonModulePath path to the Python code folder that will be added to the Python path
+ * @param pythonModuleName the name of the Python module that needs to be imported
  * @param pythonClassName the implementing class in the Python module
  * @noreference this class is non-public API and only meant to be used by the Python node framework
  * @noinstantiate this class is non-public API and only meant to be used by the Python node framework
  */
-public record PythonImplementation(Path pythonModulePath, String pythonClassName) {
-
-    /**
-     * @return folder containing the Python module
-     */
-    public Path parentFolder() {
-        return pythonModulePath.getParent();
-    }
-
-    /**
-     * @return name of the Python module (without file extension)
-     */
-    public String moduleName() {
-        var fileNameWithExtension = pythonModulePath.getFileName().toString();
-        return fileNameWithExtension.substring(0, fileNameWithExtension.lastIndexOf("."));
-    }
+public record PythonImplementation(Path pythonModulePath, String pythonModuleName, String pythonClassName) {
 }
