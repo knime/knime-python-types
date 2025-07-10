@@ -52,13 +52,10 @@ package org.knime.python3.types.port.ir;
  * Indicates that no intermediate representation is needed because there is no data. Typically used for PortObjects in
  * which all data is stored in the spec.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * Must be non-sealed because the Python side also implements it
+ *
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
-public enum EmptyIntermediateRepresentation implements PortObjectIntermediateRepresentation {
-
-        /**
-         * Singleton instance.
-         */
-        INSTANCE;
-
+public non-sealed interface EmptyIntermediateRepresentation
+    extends PortObjectSpecIntermediateRepresentation, PortObjectIntermediateRepresentation {
 }

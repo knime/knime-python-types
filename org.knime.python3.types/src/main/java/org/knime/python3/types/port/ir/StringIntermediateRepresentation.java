@@ -52,25 +52,15 @@ package org.knime.python3.types.port.ir;
  * String-based intermediate representation of port object data. Often the String is a JSON but we refrain from a
  * specific JSON transfer to avoid the dependency on a specific JSON framework.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * Must be non-sealed because the Python side also implements it
+ *
+ * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
-public final class StringIntermediateRepresentation
-    implements PortObjectSpecIntermediateRepresentation, PortObjectIntermediateRepresentation {
-
-    private final String m_representation;
+public non-sealed interface StringIntermediateRepresentation
+    extends PortObjectSpecIntermediateRepresentation, PortObjectIntermediateRepresentation {
 
     /**
-     * @param representation of the data
+     * @return The string representation of the PortObject or PortObjectSpec
      */
-    public StringIntermediateRepresentation(final String representation) {
-        m_representation = representation;
-    }
-
-    /**
-     * @return the string representing the spec or object
-     */
-    public String getStringRepresentation() {
-        return m_representation;
-    }
-
+    String getStringRepresentation();
 }

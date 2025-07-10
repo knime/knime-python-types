@@ -53,6 +53,7 @@ package org.knime.python3.types.port.ir;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public sealed interface PortObjectSpecIntermediateRepresentation extends IntermediateRepresentation permits StringIntermediateRepresentation {
+public sealed interface PortObjectSpecIntermediateRepresentation extends IntermediateRepresentation
+    permits EmptyIntermediateRepresentation, StringIntermediateRepresentation {
 
 }
